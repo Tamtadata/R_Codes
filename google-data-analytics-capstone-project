@@ -1,322 +1,242 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": 1,
-   "id": "002b73c0",
-   "metadata": {
-    "_cell_guid": "0f9c9f83-2491-4c36-929a-816da285a6fb",
-    "_uuid": "8dce1fa7-5c8a-4753-be6e-8e27569d458d",
-    "collapsed": false,
-    "execution": {
-     "iopub.execute_input": "2021-05-26T20:14:50.196419Z",
-     "iopub.status.busy": "2021-05-26T20:14:50.193312Z",
-     "iopub.status.idle": "2021-05-26T20:14:50.316160Z",
-     "shell.execute_reply": "2021-05-26T20:14:50.314546Z"
-    },
-    "jupyter": {
-     "outputs_hidden": false
-    },
-    "papermill": {
-     "duration": 0.131591,
-     "end_time": "2021-05-26T20:14:50.316322",
-     "exception": false,
-     "start_time": "2021-05-26T20:14:50.184731",
-     "status": "completed"
-    },
-    "tags": []
-   },
-   "outputs": [
-    {
-     "ename": "ERROR",
-     "evalue": "Error in parse(text = x, srcfile = src): <text>:2:1: unexpected input\n1: ## title: \"Divvy Data Analysis\"\n2: \r\n   ^\n",
-     "output_type": "error",
-     "traceback": [
-      "Error in parse(text = x, srcfile = src): <text>:2:1: unexpected input\n1: ## title: \"Divvy Data Analysis\"\n2: \r\n   ^\nTraceback:\n"
-     ]
-    }
-   ],
-   "source": [
-    "## title: \"Divvy Data Analysis\"\n",
-    "\r\n",
-    "### Summary\r\n",
-    "##### The purpose of this R script is to answer the key questions on the Google Data Analytics Professional Certificate case study capstone project: \"In what ways do members and casual rider use Divvy bikes differently?\". \r\n",
-    "\r\n",
-    "##### This analysis uses Divvy Data - historical trip data available to the public which can be found here [link] (https://www.divvybikes.com/system-data). \r\n",
-    "\r\n",
-    "\r\n",
-    "### Part 1: Load packages and libraries\r\n",
-    "\r\n",
-    "```{r setup, include=FALSE}\r\n",
-    "knitr::opts_chunk$set(echo = TRUE)\r\n",
-    "```\r\n",
-    "\r\n",
-    "\r\n",
-    "```{r, message = FALSE, warning = FALSE}\r\n",
-    "#install.packages(\"tidyverse\")\r\n",
-    "library(tidyverse)\r\n",
-    "#install.packages(\"lubridate\")\r\n",
-    "library(lubridate)\r\n",
-    "#install.packages(\"ggplot2\")\r\n",
-    "library(ggplot2)\r\n",
-    "```\r\n",
-    "\r\n",
-    "\r\n",
-    "### Part 2: Load and inspect data\r\n",
-    "##### 2.1. Upload the last four quarters of the Divvy datasets\r\n",
-    "```{r, message = FALSE, warning = FALSE}\r\n",
-    "q2_2019 <- read_csv(\"Divvy_Trips_2019_Q2.csv\") \r\n",
-    "q3_2019 <- read.csv(\"Divvy_Trips_2019_Q3.csv\")\r\n",
-    "q4_2019 <- read.csv(\"Divvy_Trips_2019_Q4.csv\")\r\n",
-    "q1_2020 <- read.csv(\"Divvy_Trips_2020_Q1.csv\")\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### 2.2. Inspect dataframes\r\n",
-    "```{r}\r\n",
-    "glimpse(q2_2019)\r\n",
-    "glimpse(q3_2019)\r\n",
-    "glimpse(q4_2019)\r\n",
-    "glimpse(q1_2020)\r\n",
-    "```\r\n",
-    "\r\n",
-    "### Part 3: Make dataframes consistent and then merge \r\n",
-    "##### 3.1. Rename columns to make them consistent with 'q1_2020' dataframe\r\n",
-    "```{r}\r\n",
-    "q2_2019 <- rename(q2_2019\r\n",
-    "                  , ride_id = \"01 - Rental Details Rental ID\" \r\n",
-    "                  , rideable_type = \"01 - Rental Details Bike ID\" \r\n",
-    "                  , started_at = \"01 - Rental Details Local Start Time\"  \r\n",
-    "                  , ended_at = \"01 - Rental Details Local End Time\"  \r\n",
-    "                  , start_station_name = \"03 - Rental Start Station Name\" \r\n",
-    "                  , start_station_id = \"03 - Rental Start Station ID\"\r\n",
-    "                  , end_station_name = \"02 - Rental End Station Name\"\r\n",
-    "                  , end_station_id = \"02 - Rental End Station ID\" \r\n",
-    "                  , member_casual = \"User Type\")\r\n",
-    "```\r\n",
-    "\r\n",
-    "\r\n",
-    "```{r}\r\n",
-    "q3_2019 <- rename(q3_2019\r\n",
-    "                  , ride_id = \"trip_id\"\r\n",
-    "                  , rideable_type = \"bikeid\"\r\n",
-    "                  , started_at = \"start_time\"\r\n",
-    "                  , ended_at = \"end_time\"\r\n",
-    "                  , start_station_name = \"from_station_name\"\r\n",
-    "                  , start_station_id = \"from_station_id\"\r\n",
-    "                  , end_station_name = \"to_station_name\" \r\n",
-    "                  , end_station_id = \"to_station_id\"\r\n",
-    "                  , member_casual = \"usertype\")\r\n",
-    "```\r\n",
-    "\r\n",
-    "\r\n",
-    "```{r}\r\n",
-    "q4_2019 <- rename(q4_2019\r\n",
-    "                  , ride_id = \"trip_id\"\r\n",
-    "                  , rideable_type = \"bikeid\"\r\n",
-    "                  , started_at = \"start_time\"\r\n",
-    "                  , ended_at = \"end_time\"\r\n",
-    "                  , start_station_name = \"from_station_name\"\r\n",
-    "                  , start_station_id = \"from_station_id\"\r\n",
-    "                  , end_station_name = \"to_station_name\" \r\n",
-    "                  , end_station_id = \"to_station_id\"\r\n",
-    "                  , member_casual = \"usertype\")\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### 3.2. Change 'ride_id' and 'rideable_type' into chr so that the values can stack correctly\r\n",
-    "```{r}\r\n",
-    "\r\n",
-    "q2_2019 <- mutate(q2_2019, ride_id = as.character(ride_id)\r\n",
-    "                  , rideable_type = as.character(rideable_type))\r\n",
-    "q3_2019 <- mutate(q3_2019, ride_id = as.character(ride_id)\r\n",
-    "                  , rideable_type = as.character(rideable_type))\r\n",
-    "q4_2019 <- mutate(q4_2019, ride_id = as.character(ride_id)\r\n",
-    "                  , rideable_type = as.character(rideable_type))\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### 3.3. Change 'started_at' and 'ended_at' fields in 'q2_2019' into chr type\r\n",
-    "```{r}\r\n",
-    "q2_2019 <- mutate(q2_2019, started_at = as.character(started_at)\r\n",
-    "                  , ended_at = as.character(ended_at))\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### 3.4. Combine individual dataframes into one dataframe \r\n",
-    "```{r}\r\n",
-    "all_trips <- bind_rows(q2_2019, q3_2019, q4_2019, q1_2020)\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### 3.5. Remove the columns that do NOT have data available for all 4 quarters\r\n",
-    "```{r}\r\n",
-    "all_trips<- all_trips %>%\r\n",
-    "  select(-c(\"01 - Rental Details Duration In Seconds Uncapped\", \"Member Gender\", \"05 - Member Details Member Birthday Year\", \"tripduration\", \"gender\", \"birthyear\", \"start_lat\", \"start_lng\", \"end_lat\", \"end_lng\"))\r\n",
-    "```\r\n",
-    "\r\n",
-    "\r\n",
-    "### Part 4: Clean up and modify data to prepare for analysis \r\n",
-    "##### 4.1. Find 'member_casual' field unique values\r\n",
-    "```{r}\r\n",
-    "unique(all_trips$member_casual)\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### In the 'member_casual' field from the case study we know that member types should be 'member' and 'casual'. My understand is that 'Subscriber' is used as synonym for 'member' and 'Customer' is used as synonym for 'casual' \r\n",
-    "\r\n",
-    "##### 4.2. To fix this  consolidate those labels into two labels \r\n",
-    "```{r}\r\n",
-    "all_trips <- all_trips %>%\r\n",
-    "  mutate(member_casual = recode(member_casual\r\n",
-    "                                , \"Subscriber\" = \"member\"\r\n",
-    "                                , \"Customer\" = \"casual\"))\r\n",
-    "```\r\n",
-    "##### Now the 'member_casual' field only lists 'member' and 'casual' riders.\r\n",
-    "\r\n",
-    "\r\n",
-    "##### 4.3. Add columns that list date, year, month, weekday for each ride.\r\n",
-    "##### This will allow us to aggregate the data at several levels\r\n",
-    "```{r}\r\n",
-    "all_trips$date <- as.Date(all_trips$started_at) \r\n",
-    "all_trips$month <- format(as.Date(all_trips$date), \"%m\")\r\n",
-    "all_trips$day <- format(as.Date(all_trips$date), \"%d\")\r\n",
-    "all_trips$year <- format(as.Date(all_trips$date), \"%Y\")\r\n",
-    "all_trips$weekday <- format(as.Date(all_trips$date), \"%A\")\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### 4.4. Calculate the length of ride in seconds by adding a new field 'ride_length'.\r\n",
-    "```{r}\r\n",
-    "all_trips$ride_length <- difftime(all_trips$ended_at, all_trips$started_at)\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### Fix the 'ride_length' values: first change the type, then get rid of negative numbers. \r\n",
-    "* check whether 'ride_length' is numeric value - this will enable us to make calculations on it\r\n",
-    "```{r}\r\n",
-    "is.numeric(all_trips$ride_length)\r\n",
-    "```\r\n",
-    "\r\n",
-    "\r\n",
-    "* convert 'ride_length' into numeric value\r\n",
-    "```{r}\r\n",
-    "all_trips$ride_length <- as.numeric(as.character(all_trips$ride_length))\r\n",
-    "```\r\n",
-    "\r\n",
-    "* Remove negative values from the 'ride_length' field. \r\n",
-    "```{r}\r\n",
-    "all_trips_v2<- subset(all_trips, !ride_length< 0 & !start_station_name == \"HQ QR\")\r\n",
-    "```\r\n",
-    "\r\n",
-    "* check if the rows are dropped\r\n",
-    "```\r\n",
-    "all_trips_v2$ride_length < 0\r\n",
-    "all_trips_v2$start_station_name == \"HQ QR\"\r\n",
-    "```\r\n",
-    "\r\n",
-    "### Part 5: Descriptive Analysis\r\n",
-    "##### 5.1. Compare avg ride time for member vs casual riders\r\n",
-    "\r\n",
-    "```{r}\r\n",
-    "aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN=mean)\r\n",
-    "```\r\n",
-    "\r\n",
-    "```{r}\r\n",
-    "aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN=median)\r\n",
-    "```\r\n",
-    "\r\n",
-    "```{r}\r\n",
-    "aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN=max)\r\n",
-    "```\r\n",
-    "\r\n",
-    "```{r}\r\n",
-    "aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN=min)\r\n",
-    "```\r\n",
-    "\r\n",
-    "\r\n",
-    "##### 5.2.  Analyze the number of rides by user type per weekday\r\n",
-    "* First order the days in the 'weekday' by weekdays\r\n",
-    "```{r}\r\n",
-    "all_trips_v2$weekday <- ordered(all_trips_v2$weekday, levels = c(\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Satuday\", \"Sunday\"))\r\n",
-    "```\r\n",
-    "\r\n",
-    "\r\n",
-    "* Visualize the number of rides by user type per weekday\r\n",
-    "```{r, message = FALSE}\r\n",
-    "all_trips_v2 %>%\r\n",
-    "  mutate(weekday = wday(started_at, label = TRUE)) %>%\r\n",
-    "  group_by(member_casual, weekday) %>%\r\n",
-    "  summarize(number_of_rides = n()) %>%\r\n",
-    "  arrange(member_casual, weekday) %>%\r\n",
-    "  ggplot(aes(x = weekday, y = number_of_rides, fill = member_casual)) + geom_col(position = \"dodge\") + labs( title = \"Number of rides by usertype per weekday\")\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### Number of rides are higher for members than for casual riders\r\n",
-    "\r\n",
-    "##### 5.3. Analyze the avg duration of the ride by rider type per weekday\r\n",
-    "\r\n",
-    "```{r, message = FALSE}\r\n",
-    "all_trips_v2 %>%\r\n",
-    "  mutate(weekday = wday(started_at, label = TRUE)) %>%\r\n",
-    "  group_by(member_casual, weekday) %>%\r\n",
-    "  summarize(avg_duration = mean(ride_length)) %>%\r\n",
-    "  arrange(member_casual, weekday) %>%\r\n",
-    "  ggplot(aes(x = weekday, y = avg_duration, fill = member_casual)) + geom_col(position = \"dodge\") + labs( title = \"Avg duration of ride by usertype per weekday\")\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### 5.4. Analyze the number of rides  by rider type per month\r\n",
-    "```{r, message = FALSE}\r\n",
-    "all_trips_v2 %>%\r\n",
-    "  group_by(member_casual, month) %>%\r\n",
-    "  summarize(number_of_rides = n()) %>%\r\n",
-    "  arrange (member_casual, month) %>%\r\n",
-    "  ggplot(aes(x = month, y = number_of_rides, fill = member_casual)) + geom_col(position = \"dodge\") + labs( title = \"Number of rides by usertype per month\")\r\n",
-    "```\r\n",
-    "\r\n",
-    "##### 5.5. Analyze the avg duration of the ride by rider type per month\r\n",
-    "```{r, message = FALSE}\r\n",
-    "all_trips_v2 %>%\r\n",
-    "  group_by(member_casual, month) %>%\r\n",
-    "  summarize (avg_duration = mean(ride_length)) %>%\r\n",
-    "  arrange(member_casual, month) %>%\r\n",
-    "  ggplot(aes(x = month, y = avg_duration, fill = member_casual)) + geom_col(position = \"dodge\") +labs(title = \"Avg duration by usetype per month\")\r\n",
-    "```\r\n",
-    "\r\n",
-    "### Part 6: Conclusion\r\n",
-    "#### Number of rides:\r\n",
-    "##### The data analysis clearly shows that the member riders use the Divvy bikes way often than the casual riders.\r\n",
-    "\r\n",
-    "##### It's not a surprise that the member riders number of rides are the highest during the weekdays from Mon through Fri, while it drops on weekends - the reason for that is that member riders mostly use the bikes for commuting. In terms of the months, it's also not a surprise that member riders mostly ride bikes during spring, summer and fall, while their rides decrease during the winter due to the weather conditions. \r\n",
-    "\r\n",
-    "#### Avg duration: \r\n",
-    "##### The data analysis shows a different story when we compare the membership type by the average duration of the ride. We see that the casual riders' average duration of the ride is more than 3 times higher than the members' for all weekdays. \r\n",
-    "\r\n",
-    "##### The same is true for month-to-month comparison. We see that the casual riders' average duration of the ride is more than 3 times higher for most of the months, while winter shows the highest difference and spring the lowest difference. It's not a big surprise that casual riders ride longer than members as they may be using the bike for recreational purposes. One thing that surprises me is that casual riders' highest average duration of the ride is during winter.  \r\n",
-    "\r\n",
-    "###### --- The end"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "R",
-   "language": "R",
-   "name": "ir"
-  },
-  "language_info": {
-   "codemirror_mode": "r",
-   "file_extension": ".r",
-   "mimetype": "text/x-r-source",
-   "name": "R",
-   "pygments_lexer": "r",
-   "version": "3.6.3"
-  },
-  "papermill": {
-   "default_parameters": {},
-   "duration": 3.066181,
-   "end_time": "2021-05-26T20:14:50.434465",
-   "environment_variables": {},
-   "exception": null,
-   "input_path": "__notebook__.ipynb",
-   "output_path": "__notebook__.ipynb",
-   "parameters": {},
-   "start_time": "2021-05-26T20:14:47.368284",
-   "version": "2.3.3"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+### Part 1: Load packages and libraries
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, message = FALSE, warning = FALSE}
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("lubridate")
+library(lubridate)
+#install.packages("ggplot2")
+library(ggplot2)
+```
+
+
+### Part 2: Load and inspect data
+##### 2.1. Upload the last four quarters of the Divvy datasets
+```{r, message = FALSE, warning = FALSE}
+q2_2019 <- read_csv("Divvy_Trips_2019_Q2.csv") 
+q3_2019 <- read.csv("Divvy_Trips_2019_Q3.csv")
+q4_2019 <- read.csv("Divvy_Trips_2019_Q4.csv")
+q1_2020 <- read.csv("Divvy_Trips_2020_Q1.csv")
+```
+
+##### 2.2. Inspect dataframes
+```{r}
+glimpse(q2_2019)
+glimpse(q3_2019)
+glimpse(q4_2019)
+glimpse(q1_2020)
+```
+
+### Part 3: Make dataframes consistent and then merge 
+##### 3.1. Rename columns to make them consistent with 'q1_2020' dataframe
+```{r}
+q2_2019 <- rename(q2_2019
+                  , ride_id = "01 - Rental Details Rental ID" 
+                  , rideable_type = "01 - Rental Details Bike ID" 
+                  , started_at = "01 - Rental Details Local Start Time"  
+                  , ended_at = "01 - Rental Details Local End Time"  
+                  , start_station_name = "03 - Rental Start Station Name" 
+                  , start_station_id = "03 - Rental Start Station ID"
+                  , end_station_name = "02 - Rental End Station Name"
+                  , end_station_id = "02 - Rental End Station ID" 
+                  , member_casual = "User Type")
+```
+
+
+```{r}
+q3_2019 <- rename(q3_2019
+                  , ride_id = "trip_id"
+                  , rideable_type = "bikeid"
+                  , started_at = "start_time"
+                  , ended_at = "end_time"
+                  , start_station_name = "from_station_name"
+                  , start_station_id = "from_station_id"
+                  , end_station_name = "to_station_name" 
+                  , end_station_id = "to_station_id"
+                  , member_casual = "usertype")
+```
+
+
+```{r}
+q4_2019 <- rename(q4_2019
+                  , ride_id = "trip_id"
+                  , rideable_type = "bikeid"
+                  , started_at = "start_time"
+                  , ended_at = "end_time"
+                  , start_station_name = "from_station_name"
+                  , start_station_id = "from_station_id"
+                  , end_station_name = "to_station_name" 
+                  , end_station_id = "to_station_id"
+                  , member_casual = "usertype")
+```
+
+##### 3.2. Change 'ride_id' and 'rideable_type' into chr so that the values can stack correctly
+```{r}
+
+q2_2019 <- mutate(q2_2019, ride_id = as.character(ride_id)
+                  , rideable_type = as.character(rideable_type))
+q3_2019 <- mutate(q3_2019, ride_id = as.character(ride_id)
+                  , rideable_type = as.character(rideable_type))
+q4_2019 <- mutate(q4_2019, ride_id = as.character(ride_id)
+                  , rideable_type = as.character(rideable_type))
+```
+
+##### 3.3. Change 'started_at' and 'ended_at' fields in 'q2_2019' into chr type
+```{r}
+q2_2019 <- mutate(q2_2019, started_at = as.character(started_at)
+                  , ended_at = as.character(ended_at))
+```
+
+##### 3.4. Combine individual dataframes into one dataframe 
+```{r}
+all_trips <- bind_rows(q2_2019, q3_2019, q4_2019, q1_2020)
+```
+
+##### 3.5. Remove the columns that do NOT have data available for all 4 quarters
+```{r}
+all_trips<- all_trips %>%
+  select(-c("01 - Rental Details Duration In Seconds Uncapped", "Member Gender", "05 - Member Details Member Birthday Year", "tripduration", "gender", "birthyear", "start_lat", "start_lng", "end_lat", "end_lng"))
+```
+
+
+### Part 4: Clean up and modify data to prepare for analysis 
+##### 4.1. Find 'member_casual' field unique values
+```{r}
+unique(all_trips$member_casual)
+```
+
+##### In the 'member_casual' field from the case study we know that member types should be 'member' and 'casual'. My understand is that 'Subscriber' is used as synonym for 'member' and 'Customer' is used as synonym for 'casual' 
+
+##### 4.2. To fix this  consolidate those labels into two labels 
+```{r}
+all_trips <- all_trips %>%
+  mutate(member_casual = recode(member_casual
+                                , "Subscriber" = "member"
+                                , "Customer" = "casual"))
+```
+##### Now the 'member_casual' field only lists 'member' and 'casual' riders.
+
+
+##### 4.3. Add columns that list date, year, month, weekday for each ride.
+##### This will allow us to aggregate the data at several levels
+```{r}
+all_trips$date <- as.Date(all_trips$started_at) 
+all_trips$month <- format(as.Date(all_trips$date), "%m")
+all_trips$day <- format(as.Date(all_trips$date), "%d")
+all_trips$year <- format(as.Date(all_trips$date), "%Y")
+all_trips$weekday <- format(as.Date(all_trips$date), "%A")
+```
+
+##### 4.4. Calculate the length of ride in seconds by adding a new field 'ride_length'.
+```{r}
+all_trips$ride_length <- difftime(all_trips$ended_at, all_trips$started_at)
+```
+
+##### Fix the 'ride_length' values: first change the type, then get rid of negative numbers. 
+* check whether 'ride_length' is numeric value - this will enable us to make calculations on it
+```{r}
+is.numeric(all_trips$ride_length)
+```
+
+
+* convert 'ride_length' into numeric value
+```{r}
+all_trips$ride_length <- as.numeric(as.character(all_trips$ride_length))
+```
+
+* Remove negative values from the 'ride_length' field. 
+```{r}
+all_trips_v2<- subset(all_trips, !ride_length< 0 & !start_station_name == "HQ QR")
+```
+
+* check if the rows are dropped
+```
+all_trips_v2$ride_length < 0
+all_trips_v2$start_station_name == "HQ QR"
+```
+
+### Part 5: Descriptive Analysis
+##### 5.1. Compare avg ride time for member vs casual riders
+
+```{r}
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN=mean)
+```
+
+```{r}
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN=median)
+```
+
+```{r}
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN=max)
+```
+
+```{r}
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$member_casual, FUN=min)
+```
+
+
+##### 5.2.  Analyze the number of rides by user type per weekday
+* First order the days in the 'weekday' by weekdays
+```{r}
+all_trips_v2$weekday <- ordered(all_trips_v2$weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satuday", "Sunday"))
+```
+
+
+* Visualize the number of rides by user type per weekday
+```{r, message = FALSE}
+all_trips_v2 %>%
+  mutate(weekday = wday(started_at, label = TRUE)) %>%
+  group_by(member_casual, weekday) %>%
+  summarize(number_of_rides = n()) %>%
+  arrange(member_casual, weekday) %>%
+  ggplot(aes(x = weekday, y = number_of_rides, fill = member_casual)) + geom_col(position = "dodge") + labs( title = "Number of rides by usertype per weekday")
+```
+
+##### Number of rides are higher for members than for casual riders
+
+##### 5.3. Analyze the avg duration of the ride by rider type per weekday
+
+```{r, message = FALSE}
+all_trips_v2 %>%
+  mutate(weekday = wday(started_at, label = TRUE)) %>%
+  group_by(member_casual, weekday) %>%
+  summarize(avg_duration = mean(ride_length)) %>%
+  arrange(member_casual, weekday) %>%
+  ggplot(aes(x = weekday, y = avg_duration, fill = member_casual)) + geom_col(position = "dodge") + labs( title = "Avg duration of ride by usertype per weekday")
+```
+
+##### 5.4. Analyze the number of rides  by rider type per month
+```{r, message = FALSE}
+all_trips_v2 %>%
+  group_by(member_casual, month) %>%
+  summarize(number_of_rides = n()) %>%
+  arrange (member_casual, month) %>%
+  ggplot(aes(x = month, y = number_of_rides, fill = member_casual)) + geom_col(position = "dodge") + labs( title = "Number of rides by usertype per month")
+```
+
+##### 5.5. Analyze the avg duration of the ride by rider type per month
+```{r, message = FALSE}
+all_trips_v2 %>%
+  group_by(member_casual, month) %>%
+  summarize (avg_duration = mean(ride_length)) %>%
+  arrange(member_casual, month) %>%
+  ggplot(aes(x = month, y = avg_duration, fill = member_casual)) + geom_col(position = "dodge") +labs(title = "Avg duration by usetype per month")
+```
+
+### Part 6: Conclusion
+#### Number of rides:
+##### The data analysis clearly shows that the member riders use the Divvy bikes way often than the casual riders.
+
+##### It's not a surprise that the member riders number of rides are the highest during the weekdays from Mon through Fri, while it drops on weekends - the reason for that is that member riders mostly use the bikes for commuting. In terms of the months, it's also not a surprise that member riders mostly ride bikes during spring, summer and fall, while their rides decrease during the winter due to the weather conditions. 
+
+#### Avg duration: 
+##### The data analysis shows a different story when we compare the membership type by the average duration of the ride. We see that the casual riders' average duration of the ride is more than 3 times higher than the members' for all weekdays. 
+
+##### The same is true for month-to-month comparison. We see that the casual riders' average duration of the ride is more than 3 times higher for most of the months, while winter shows the highest difference and spring the lowest difference. It's not a big surprise that casual riders ride longer than members as they may be using the bike for recreational purposes. One thing that surprises me is that casual riders' highest average duration of the ride is during winter.  
+
+###### --- The end
